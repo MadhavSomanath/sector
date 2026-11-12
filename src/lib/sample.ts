@@ -1,0 +1,21 @@
+/** Sample tasks for trying Sector: [title, age in days]. Five are older than 60 days. */
+export const SAMPLE_TASKS: Array<[string, number]> = [
+  ['Plan mom’s birthday dinner', 1],
+  ['Reply to Priya about the venue', 2],
+  ['Write a thank-you note to Sam', 3],
+  ['Draft Q1 roadmap one-pager', 4],
+  ['Order a new desk lamp', 6],
+  ['Fix bike brakes', 9],
+  ['Book dentist', 12],
+  ['Back up phone photos', 15],
+  ['Send client invoice', 19],
+  ['Organize tax documents', 22],
+  ['Cancel unused gym membership', 28],
+  ['Renew passport photos', 35],
+  ['Update portfolio case study', 41],
+  ['Research standing desks', 64],
+  ['Read “Deep Work”', 75],
+  ['Learn Spanish basics', 94],
+  ['Clean out the garage', 120],
+  ['Start a podcast', 200],
+];

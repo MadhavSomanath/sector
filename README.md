@@ -14,7 +14,9 @@ Most task apps are good at collecting tasks and bad at getting them done. Sector
 
 ## Status
 
-Early stage. A clickable phone prototype is next, tested first by the maker and a small group of friends, before any public release.
+Prototype. A clickable phone app, tested first by the maker and a small group of friends, before any public release. Data stays in the browser on each device; there are no accounts yet.
+
+**In the prototype:** onboarding with a first sort, This Week with the limit and age dots, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 5-step weekly review. Settings has "Copy usage notes" for sharing test feedback.
 
 | Stage | Focus |
 |---|---|
@@ -27,9 +29,18 @@ Early stage. A clickable phone prototype is next, tested first by the maker and 
 
 - [Product requirements](PRD.md): problem, users, requirements, flows, data model, roadmap
 
-## Stack (planned)
+## Run it
 
-React 19 · Vite · Tailwind 4 · Motion · lucide-react · installable PWA, phone-first with a desktop layout
+```bash
+npm install
+npm run dev
+```
+
+Open the address it prints. To try it on a phone on the same Wi-Fi, use the "Network" address.
+
+## Stack
+
+React 19 · Vite · Tailwind 4 · Motion · lucide-react · installable PWA, phone-first
 
 ## License
 

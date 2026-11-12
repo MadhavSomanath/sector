@@ -24,3 +24,6 @@ HANDOFF.md
 validation.md
 brand/
 designs/
+
+# Local tool config
+.claude/

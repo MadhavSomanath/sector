@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #FFF4EC;
+  --color-ink: #2B2A33;
+  --color-muted: #66626F;
+  --color-line: #EBD6C8;
+  --color-coral: #F2765A;
+  --color-coral-d: #C4452A;
+  --color-peach: #FFB677;
+  --color-mint: #7FCFA6;
+  --color-sky: #7DB8F5;
+  --color-lav: #A99BF0;
+  --color-coral-t: #FDE3DC;
+  --color-peach-t: #FFEBD8;
+  --color-mint-t: #DDF3E7;
+  --color-sky-t: #DEEDFD;
+  --color-lav-t: #ECE8FC;
+  --color-age-g: #3FAE72;
+  --color-age-y: #EDAA2B;
+  --color-age-r: #E5484D;
+  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --shadow-soft: 0 4px 14px rgba(43, 42, 51, 0.07);
+  --shadow-lift: 0 10px 30px rgba(242, 118, 90, 0.14);
+  --shadow-btn: 0 8px 20px rgba(196, 69, 42, 0.28);
+}
+
+@layer base {
+  html, body { background: var(--color-bg); color: var(--color-ink); }
+  body { margin: 0; font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; }
+  button:disabled { cursor: default; }
+  :focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@utility pb-safe {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+input[type="range"].sector-range {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent;
+}
+input[type="range"].sector-range::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 99px;
+  background: linear-gradient(to right, var(--color-coral) var(--fill, 20%), var(--color-coral-t) var(--fill, 20%));
+}
+input[type="range"].sector-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 30px; height: 30px; margin-top: -11px; border-radius: 99px;
+  background: #fff; border: 4px solid var(--color-coral-d); box-shadow: var(--shadow-soft);
+}
+input[type="range"].sector-range::-moz-range-track { height: 8px; border-radius: 99px; background: var(--color-coral-t); }
+input[type="range"].sector-range::-moz-range-progress { height: 8px; border-radius: 99px; background: var(--color-coral); }
+input[type="range"].sector-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 99px; background: #fff; border: 4px solid var(--color-coral-d); }
