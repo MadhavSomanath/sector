@@ -1,0 +1,26 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Dependencies and builds
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local working files (kept out of the repo for now)
+HANDOFF.md
+validation.md
+brand/
+designs/
