@@ -83,12 +83,13 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | | This Week shows "14 / 20" | P0 |
 | | Adding past the limit opens a **swap sheet**: pick one task (oldest suggested first) to move to Next Week | P0 |
 | | Learning week first, then a limit suggested at the first review (3–60, adjustable in Settings) | P0 |
+| | Once every planned task is done, tasks pulled in are **bonus**: they don't count against the limit or the score | P0 |
 | | Re-suggest the limit every few reviews from recent weeks | P1 |
 | | Optional labels and due dates | P0 / P1 |
 | Letting go | Age dot on every task | P0 |
 | | Clean-up view for tasks over 30 days: delete all, park all, or one by one | P0 |
 | | Trash keeps tasks for 30 days; parked tasks go to the Parking Lot (reviewed monthly) | P0 / P1 |
-| Weekly review | 3 steps: score (or limit calibration after the learning week) → leftovers (keep / push / let go / delete, none skipped) → plan next week up to the limit and lock in | P0 |
+| Weekly review | 3 steps: score (or limit calibration after the learning week) → leftovers (keep / push / let go / delete, none skipped) → plan next week up to the limit from any later bucket, and lock in | P0 |
 | | Opens on review day and stays open until done, however late; before that, the Review tab only shows progress | P0 |
 | | Reminder on review day | P0 |
 | | Monthly rollover: Next Month becomes Later this month | P1 |
@@ -105,7 +106,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 ## 7. Key flows
 
 1. **First run:** method → bring tasks → first sort → set week → This Week
-2. **Daily:** open This Week → tick tasks off → quick add → sort the inbox
+2. **Daily:** open This Week → tick or swipe tasks off → quick add → sort the inbox
 3. **Weekly:** reminder → 3-step review → week locked in
 4. **Over the limit:** add to This Week → swap sheet → move one out → done
 

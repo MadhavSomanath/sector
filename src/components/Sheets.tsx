@@ -111,7 +111,7 @@ export function MoveSheet({ taskId, onClose }: { taskId: string | null; onClose:
 export function SwapSheet({ incomingId, onClose }: { incomingId: string | null; onClose: () => void }) {
   const { state, dispatch } = useStore();
   const incoming = state.tasks.find((t) => t.id === incomingId);
-  const candidates = openThisWeek(state).sort(byOldest).slice(0, 5);
+  const candidates = openThisWeek(state).filter((t) => !t.bonus).sort(byOldest).slice(0, 5);
   const [outId, setOutId] = useState<string | null>(null);
   useEffect(() => { if (incomingId) setOutId(null); }, [incomingId]);
   const selected = outId ?? candidates[0]?.id;

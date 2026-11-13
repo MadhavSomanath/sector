@@ -1,7 +1,7 @@
 import { CalendarDays, CircleDot, Inbox as InboxIcon, PieChart, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AddSheet, MoveSheet, SettingsSheet, SwapSheet } from './components/Sheets';
-import { inBucket, isFull, useStore } from './lib/store';
+import { inBucket, isFull, useStore, weekFinished } from './lib/store';
 import { UICtx, type Tab, type UI } from './lib/ui';
 import { Buckets } from './screens/Buckets';
 import { Inbox } from './screens/Inbox';
@@ -20,7 +20,10 @@ export function App() {
 
   const ui = useMemo<UI>(() => ({
     placeThisWeek: (id) => {
-      if (isFull(state)) { setSwapIn(id); return false; }
+      if (isFull(state)) {
+        if (weekFinished(state)) { dispatch({ type: 'move', id, bucket: 'this_week', bonus: true }); return true; }
+        setSwapIn(id); return false;
+      }
       dispatch({ type: 'move', id, bucket: 'this_week' });
       return true;
     },

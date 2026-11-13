@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { SecFace, Sec } from '../components/Sec';
 import { TaskRow } from '../components/TaskRow';
 import { addDays, DAYS_LONG, DAYS_SHORT, fmtRange, startOfDay, weekStartOf } from '../lib/dates';
-import { byNewest, doneThisWeek, inBucket, openThisWeek, reviewDue, useStore, weekCount, winAt as winAtFor } from '../lib/store';
+import { bonusDone, byNewest, doneThisWeek, inBucket, openThisWeek, plannedDone, reviewDue, useStore, weekCount, winAt as winAtFor } from '../lib/store';
 import { useUI } from '../lib/ui';
 
 export function Week() {
@@ -18,6 +18,8 @@ export function Week() {
   const open = openThisWeek(state).sort(byNewest);
   const done = doneThisWeek(state).sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
   const count = weekCount(state);
+  const doneN = plannedDone(state).length;
+  const bonusN = bonusDone(state).length;
   const limit = state.settings.limit;
   const winAt = winAtFor(count);
   const inbox = inBucket(state, 'inbox').length;
@@ -66,11 +68,11 @@ export function Week() {
       <div className="mt-4 rounded-[26px] bg-white px-4 py-3.5 shadow-[var(--shadow-soft)]">
         <div className="flex items-baseline justify-between">
           <span className="font-display text-[26px] font-bold">{count} <small className="text-base text-muted">/ {limit}</small></span>
-          <span className="text-[13px] font-extrabold text-muted">{count ? `${done.length} done · win at ${winAt}` : 'Room for the week'}</span>
+          <span className="text-[13px] font-extrabold text-muted">{count ? `${doneN} done${bonusN ? ` + ${bonusN} bonus` : ''} · win at ${winAt}` : 'Room for the week'}</span>
         </div>
         <div className="mt-2.5 flex gap-[3px]" aria-hidden>
           {limit <= 30
-            ? Array.from({ length: limit }, (_, k) => <span key={k} className={`h-2.5 flex-1 rounded-full ${k < done.length ? 'bg-coral-d' : k < count ? 'bg-coral' : 'bg-coral-t'}`} />)
+            ? Array.from({ length: limit }, (_, k) => <span key={k} className={`h-2.5 flex-1 rounded-full ${k < doneN ? 'bg-coral-d' : k < count ? 'bg-coral' : 'bg-coral-t'}`} />)
             : <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-coral-t"><span className="block h-full rounded-full bg-coral" style={{ width: `${(count / limit) * 100}%` }} /></span>}
         </div>
       </div>
@@ -94,9 +96,17 @@ export function Week() {
       ) : (
         <div className="mt-4 flex flex-col gap-2.5">
           <AnimatePresence initial={false}>
-            {open.map((t) => <TaskRow key={t.id} task={t} onOpen={() => ui.openMove(t.id)} onToggle={() => dispatch({ type: 'toggleDone', id: t.id })} />)}
+            {open.map((t) => <TaskRow key={t.id} task={t} extra={t.bonus && <BonusTag />} onOpen={() => ui.openMove(t.id)} onToggle={() => dispatch({ type: 'toggleDone', id: t.id })} />)}
           </AnimatePresence>
-          {open.length === 0 && <p className="py-3 text-center font-display font-semibold text-muted">All done for this week!</p>}
+          {open.length > 0 && done.length === 0 && <p className="text-center text-[13px] font-bold text-muted">Swipe a task right to finish it.</p>}
+          {open.length === 0 && (
+            <div className="py-3 text-center">
+              <p className="font-display font-semibold text-muted">All done for this week!</p>
+              {!state.calibrating && count >= limit && (
+                <button onClick={() => ui.goTo('buckets')} className="mt-1 text-sm font-bold text-muted underline underline-offset-2">Pull in a bonus task from Buckets</button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -120,3 +130,5 @@ function Nudge({ tint, title, sub, onClick }: { tint: string; title: string; sub
     </button>
   );
 }
+
+const BonusTag = () => <span className="rounded-full bg-mint-t px-2 text-[11px] font-extrabold text-[#2E7A55]">Bonus</span>;

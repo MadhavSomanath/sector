@@ -11,6 +11,8 @@ export interface Task {
   createdAt: number;
   movedAt: number;
   completedAt?: number;
+  /** Pulled in after every planned task was done: doesn't count against the limit or the score. */
+  bonus?: boolean;
 }
 
 export interface Settings {
@@ -43,7 +45,7 @@ export type Action =
   | { type: 'reset' }
   | { type: 'onboard'; tasks: Array<{ title: string; bucket: Bucket; createdAt: number }>; reviewDay: number; minutes: number }
   | { type: 'add'; title: string; bucket: Bucket; id: string }
-  | { type: 'move'; id: string; bucket: Bucket }
+  | { type: 'move'; id: string; bucket: Bucket; bonus?: boolean }
   | { type: 'toggleDone'; id: string }
   | { type: 'swap'; outId: string; to: MoveTarget; inId: string }
   | { type: 'raiseLimit'; inId: string }
@@ -101,7 +103,8 @@ function reducer(s: State, a: Action): State {
       return { ...s, tasks: [...s.tasks, { id: a.id, title: a.title, bucket: a.bucket, createdAt: now, movedAt: now }], events: log('task_added', { bucket: a.bucket }) };
     case 'move': {
       const from = s.tasks.find((t) => t.id === a.id)?.bucket;
-      return { ...s, tasks: s.tasks.map(put(a.id, a.bucket)), events: log('task_moved', { from, to: a.bucket }) };
+      const tasks = s.tasks.map(put(a.id, a.bucket)).map((t) => (t.id === a.id ? { ...t, bonus: a.bonus || undefined } : t));
+      return { ...s, tasks, events: log(a.bonus ? 'bonus_added' : 'task_moved', { from, to: a.bucket }) };
     }
     case 'toggleDone': {
       const t = s.tasks.find((x) => x.id === a.id);
@@ -122,7 +125,7 @@ function reducer(s: State, a: Action): State {
     case 'settings':
       return { ...s, settings: { ...s.settings, ...a.patch }, events: log('settings', a.patch) };
     case 'lockWeek': {
-      let tasks = s.tasks;
+      let tasks = s.tasks.map((t) => (t.bonus ? { ...t, bonus: undefined } : t));
       for (const [id, b] of Object.entries(a.moves)) tasks = tasks.map(put(id, b));
       const calibrated = a.limit !== undefined;
       const events = calibrated ? [...log('limit_calibrated', { limit: a.limit })] : s.events;
@@ -156,8 +159,12 @@ export function useStore() {
 
 export const openThisWeek = (s: State) => s.tasks.filter((t) => t.bucket === 'this_week');
 export const doneThisWeek = (s: State) => s.tasks.filter((t) => t.bucket === 'done' && (t.completedAt ?? 0) >= s.weekLockedAt);
-/** Tasks counted against the limit: open and done this week. */
-export const weekCount = (s: State) => openThisWeek(s).length + doneThisWeek(s).length;
+/** Tasks counted against the limit: open and done this week, not counting bonus tasks. */
+export const weekCount = (s: State) => [...openThisWeek(s), ...doneThisWeek(s)].filter((t) => !t.bonus).length;
+export const plannedDone = (s: State) => doneThisWeek(s).filter((t) => !t.bonus);
+export const bonusDone = (s: State) => doneThisWeek(s).filter((t) => t.bonus);
+/** Every planned task is done, so anything pulled in now is a bonus. */
+export const weekFinished = (s: State) => openThisWeek(s).every((t) => t.bonus);
 
 /** The review that closes the planned week: its review day, or the day after the week if the review day is the first day. */
 export const reviewDate = (s: State) =>

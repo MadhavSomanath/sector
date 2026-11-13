@@ -2,11 +2,14 @@ import { Check, Minus, Plus } from 'lucide-react';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Sec } from '../components/Sec';
 import { AgeDot, BackButton, Button, Confetti, Steps } from '../components/ui';
-import { BUCKET_STYLE, laterBucket } from '../lib/buckets';
+import { BUCKET_NAME, BUCKET_STYLE, laterBucket } from '../lib/buckets';
 import { addDays, DAYS_LONG, fmtRange, planningWeekStart } from '../lib/dates';
-import { byOldest, doneThisWeek, inBucket, MAX_LIMIT, MIN_LIMIT, openThisWeek, reviewDate, reviewDue, suggestLimit, useStore, weekCount, winAt, type Bucket } from '../lib/store';
+import { bonusDone, byOldest, inBucket, MAX_LIMIT, MIN_LIMIT, openThisWeek, plannedDone, reviewDate, reviewDue, suggestLimit, useStore, weekCount, winAt, type Bucket } from '../lib/store';
 
 type Decision = 'keep' | Bucket;
+
+/** Where the plan step offers tasks from, nearest first. */
+const PULL_FROM: Bucket[] = ['next_week', 'this_month', 'next_month', 'on_hold'];
 
 export function Review({ onClose }: { onClose: () => void }) {
   const { state, dispatch } = useStore();
@@ -17,7 +20,8 @@ export function Review({ onClose }: { onClose: () => void }) {
 
   // Snapshot the week as it was when the review started.
   const leftovers = useMemo(() => openThisWeek(state).sort(byOldest), []);
-  const done = doneThisWeek(state).length;
+  const done = plannedDone(state).length;
+  const bonus = bonusDone(state).length;
   const total = weekCount(state);
   const pct = total ? Math.round((done / total) * 100) : 0;
   const win = total > 0 && done >= winAt(total);
@@ -31,7 +35,7 @@ export function Review({ onClose }: { onClose: () => void }) {
   const weekLabel = fmtRange(newWeek, addDays(newWeek, 6));
   const later = laterBucket(newWeek);
   const kept = leftovers.filter((t) => decisions[t.id] === 'keep').length;
-  const candidates = [...inBucket(state, 'next_week'), ...inBucket(state, 'this_month')].sort(byOldest);
+  const candidates = PULL_FROM.flatMap((b) => inBucket(state, b).sort(byOldest));
   const planned = kept + pulled.length;
   const over = planned - limit;
   const allDecided = leftovers.every((t) => decisions[t.id]);
@@ -112,7 +116,7 @@ export function Review({ onClose }: { onClose: () => void }) {
           <div className="mt-4 flex flex-col items-center rounded-[32px] bg-white px-5 py-6 text-center shadow-[var(--shadow-lift)]">
             <Sec pose={win ? 'win' : 'plain'} className="w-40" />
             <div className="mt-2 font-display text-[52px] leading-none font-bold text-coral-d">{pct}%</div>
-            <div className="mt-1 font-bold text-muted">{done} of {total} done</div>
+            <div className="mt-1 font-bold text-muted">{done} of {total} done{bonus > 0 && ` + ${bonus} bonus`}</div>
             <p className="mt-3 font-display text-xl font-semibold">
               {total === 0 ? 'A fresh start.' : win ? 'Win week!' : 'Good effort. Every week is practice.'}
             </p>
@@ -174,7 +178,7 @@ export function Review({ onClose }: { onClose: () => void }) {
               That’s {over} over your limit. <button className="underline underline-offset-2" onClick={() => setStep(1)}>Push {over === 1 ? 'one' : 'some'} back</button>
             </div>
           )}
-          {candidates.length === 0 && <p className="mt-6 text-center font-semibold text-muted">Nothing waiting in Next Week or later this month.</p>}
+          {candidates.length === 0 && <p className="mt-6 text-center font-semibold text-muted">Nothing waiting in later buckets.</p>}
           <div className="no-scrollbar -mx-[22px] mt-3 flex flex-col gap-2 overflow-y-auto px-[22px] pb-2">
             {candidates.map((t) => {
               const on = pulled.includes(t.id);
@@ -183,8 +187,8 @@ export function Review({ onClose }: { onClose: () => void }) {
                 <button key={t.id} disabled={blocked} aria-pressed={on} onClick={() => setPulled(on ? pulled.filter((x) => x !== t.id) : [...pulled, t.id])}
                   className={`flex items-center gap-3 rounded-[20px] border-[2.5px] bg-white px-3.5 py-3 text-left transition disabled:opacity-40 ${on ? 'border-coral-d' : 'border-transparent'}`}>
                   <span className={`grid size-[26px] shrink-0 place-items-center rounded-full ${on ? 'bg-coral-d' : 'border-3 border-line'}`}>{on && <Check size={15} strokeWidth={3.5} className="text-white" />}</span>
-                  <span className="flex-1 leading-snug font-bold">{t.title}</span>
-                  <span className={`size-3 shrink-0 rounded-[4px] ${BUCKET_STYLE[t.bucket].bg}`} title={t.bucket === 'next_week' ? 'Next Week' : 'Later this month'} />
+                  <span className="flex-1 leading-snug font-bold">{t.title}<small className="block text-xs font-extrabold text-muted">{BUCKET_NAME[t.bucket]}</small></span>
+                  <span className={`size-3 shrink-0 rounded-[4px] ${BUCKET_STYLE[t.bucket].bg}`} title={BUCKET_NAME[t.bucket]} />
                   <AgeDot createdAt={t.createdAt} />
                 </button>
               );
