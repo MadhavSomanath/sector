@@ -3,8 +3,8 @@ import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Sec } from '../components/Sec';
 import { AgeDot, BackButton, Button, Confetti, Steps } from '../components/ui';
 import { BUCKET_STYLE, laterBucket } from '../lib/buckets';
-import { addDays, fmtRange, planningWeekStart } from '../lib/dates';
-import { byOldest, doneThisWeek, inBucket, MAX_LIMIT, MIN_LIMIT, openThisWeek, suggestLimit, useStore, weekCount, winAt, type Bucket } from '../lib/store';
+import { addDays, DAYS_LONG, fmtRange, planningWeekStart } from '../lib/dates';
+import { byOldest, doneThisWeek, inBucket, MAX_LIMIT, MIN_LIMIT, openThisWeek, reviewDate, reviewDue, suggestLimit, useStore, weekCount, winAt, type Bucket } from '../lib/store';
 
 type Decision = 'keep' | Bucket;
 
@@ -47,6 +47,29 @@ export function Review({ onClose }: { onClose: () => void }) {
     });
     onClose();
   };
+
+  if (!reviewDue(state)) {
+    const opens = reviewDate(state);
+    const when = `${DAYS_LONG[new Date(opens).getDay()]}, ${fmtRange(opens, opens)}`;
+    return (
+      <main className="pb-safe relative mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-hidden px-[22px] pt-6">
+        <div className="mb-4"><BackButton label="Close review" onClick={onClose} /></div>
+        <div className="text-sm font-extrabold text-muted">Weekly review</div>
+        <h1 className="font-display text-[30px] leading-tight font-bold">Not quite yet</h1>
+        <div className="mt-4 flex flex-col items-center rounded-[32px] bg-white px-5 py-6 text-center shadow-[var(--shadow-lift)]">
+          <Sec pose="when" className="w-32" />
+          <p className="mt-2 font-display text-xl font-semibold">
+            {calibrating ? `Your learning week runs until ${when}.` : `Your review opens ${when}.`}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-muted">
+            {done} of {total} done so far. {calibrating ? 'Then Sec suggests a limit from what you finished.' : 'Keep going!'}
+          </p>
+        </div>
+        <p className="mt-3 text-center text-sm font-semibold text-muted">You can change your review day in Settings.</p>
+        <Footer><Button onClick={onClose}>Back to my week</Button></Footer>
+      </main>
+    );
+  }
 
   const titles = [calibrating ? 'Your learning week' : 'How did it go?', 'Leftovers', 'Plan next week'];
 

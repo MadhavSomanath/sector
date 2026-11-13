@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react';
-import { planningWeekStart } from './dates';
+import { addDays, planningWeekStart } from './dates';
 
 export type Bucket = 'inbox' | 'this_week' | 'next_week' | 'this_month' | 'next_month' | 'on_hold' | 'parked' | 'trash' | 'done';
 export type MoveTarget = Exclude<Bucket, 'inbox' | 'done'>;
@@ -54,7 +54,6 @@ const KEY = 'sector-proto-v1';
 export const DEFAULT_SETTINGS: Settings = { limit: 20, weekStartDay: 1, reviewDay: 6 };
 export const MIN_LIMIT = 3;
 export const MAX_LIMIT = 60;
-/** Limit where finishing the same amount again is a win week (80%). */
 /** Tasks to finish for a win week: 80%, rounded down (at least 1). */
 export const winAt = (planned: number) => Math.max(1, Math.floor(planned * 0.8));
 export const suggestLimit = (done: number) => Math.min(MAX_LIMIT, Math.max(MIN_LIMIT, Math.floor(done / 0.8)));
@@ -159,6 +158,12 @@ export const openThisWeek = (s: State) => s.tasks.filter((t) => t.bucket === 'th
 export const doneThisWeek = (s: State) => s.tasks.filter((t) => t.bucket === 'done' && (t.completedAt ?? 0) >= s.weekLockedAt);
 /** Tasks counted against the limit: open and done this week. */
 export const weekCount = (s: State) => openThisWeek(s).length + doneThisWeek(s).length;
+
+/** The review that closes the planned week: its review day, or the day after the week if the review day is the first day. */
+export const reviewDate = (s: State) =>
+  addDays(s.planWeekStart, (s.settings.reviewDay - s.settings.weekStartDay + 7) % 7 || 7);
+/** Review is open from review day until it's done, however late. Before that, the Review tab only shows progress. */
+export const reviewDue = (s: State, now = Date.now()) => now >= reviewDate(s) && s.weekLockedAt < reviewDate(s);
 export const isFull = (s: State) => !s.calibrating && weekCount(s) >= s.settings.limit;
 export const inBucket = (s: State, b: Bucket) => s.tasks.filter((t) => t.bucket === b);
 export const byOldest = (a: Task, b: Task) => a.createdAt - b.createdAt;

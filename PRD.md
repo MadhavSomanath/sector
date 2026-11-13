@@ -89,6 +89,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | | Clean-up view for tasks over 30 days: delete all, park all, or one by one | P0 |
 | | Trash keeps tasks for 30 days; parked tasks go to the Parking Lot (reviewed monthly) | P0 / P1 |
 | Weekly review | 3 steps: score (or limit calibration after the learning week) → leftovers (keep / push / let go / delete, none skipped) → plan next week up to the limit and lock in | P0 |
+| | Opens on review day and stays open until done, however late; before that, the Review tab only shows progress | P0 |
 | | Reminder on review day | P0 |
 | | Monthly rollover: Next Month becomes Later this month | P1 |
 | Capacity | Google Calendar, read-only free/busy: show free hours, and add a fit check to the review once connected (no guessed hours per task) | P1 |

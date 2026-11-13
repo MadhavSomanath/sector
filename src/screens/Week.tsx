@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { SecFace, Sec } from '../components/Sec';
 import { TaskRow } from '../components/TaskRow';
 import { addDays, DAYS_LONG, DAYS_SHORT, fmtRange, startOfDay, weekStartOf } from '../lib/dates';
-import { byNewest, doneThisWeek, inBucket, openThisWeek, useStore, weekCount, winAt as winAtFor } from '../lib/store';
+import { byNewest, doneThisWeek, inBucket, openThisWeek, reviewDue, useStore, weekCount, winAt as winAtFor } from '../lib/store';
 import { useUI } from '../lib/ui';
 
 export function Week() {
@@ -21,13 +21,15 @@ export function Week() {
   const limit = state.settings.limit;
   const winAt = winAtFor(count);
   const inbox = inBucket(state, 'inbox').length;
+  const due = reviewDue(state, now);
+  const weekOver = now >= addDays(ws, 7);
   const isReviewDay = new Date(now).getDay() === state.settings.reviewDay;
 
   return (
     <div className="px-[22px] pt-6">
       <header className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-extrabold text-muted">{fmtRange(ws, addDays(ws, 6))}{upcoming && ` · starts ${DAYS_LONG[new Date(ws).getDay()]}`}</div>
+          <div className="text-sm font-extrabold text-muted">{fmtRange(ws, addDays(ws, 6))}{upcoming && ` · starts ${DAYS_LONG[new Date(ws).getDay()]}`}{weekOver && ' · ended'}</div>
           <h1 className="font-display text-[30px] leading-tight font-bold">This Week</h1>
         </div>
         <button onClick={ui.openSettings} aria-label="Settings" className="grid size-11 place-items-center rounded-full bg-white shadow-[var(--shadow-soft)]">
@@ -74,8 +76,10 @@ export function Week() {
       </div>
       )}
 
-      {isReviewDay && (
-        <Nudge tint="bg-lav-t" onClick={ui.startReview} title="It's review day" sub="10 minutes to plan your next week" />
+      {due && (
+        <Nudge tint="bg-lav-t" onClick={ui.startReview}
+          title={weekOver ? 'Last week is still open' : isReviewDay ? 'It’s review day' : 'Your review is ready'}
+          sub={weekOver ? 'A few minutes to close it and plan this week' : 'A few minutes to close the week and plan the next'} />
       )}
       {inbox > 0 && (
         <Nudge tint="bg-peach-t" onClick={() => ui.goTo('inbox')} title={`${inbox} in your Inbox`} sub="Answer “when?” for each" />
