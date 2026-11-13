@@ -3,7 +3,7 @@ import { Check, ClipboardList, Plus, Sparkles } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 import { Sec } from '../components/Sec';
 import { SwipeDeck, type Dir } from '../components/SwipeDeck';
-import { AgeDot, BackButton, Button, Card, Confetti, DayChips, LinkButton, Range, Steps } from '../components/ui';
+import { AgeDot, BackButton, Button, Card, Confetti, DayChips, LinkButton, Steps } from '../components/ui';
 import { laterBucket } from '../lib/buckets';
 import { addDays, ageDays, bucketRanges, DAY, fmtRange, planningWeekStart, weekStartOf } from '../lib/dates';
 import { DEFAULT_SETTINGS, useStore, type Bucket } from '../lib/store';
@@ -24,7 +24,6 @@ export function Onboarding() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [i, setI] = useState(0);
   const [exitDir, setExitDir] = useState<Dir | null>(null);
-  const [limit, setLimit] = useState(DEFAULT_SETTINGS.limit);
   const [reviewDay, setReviewDay] = useState(DEFAULT_SETTINGS.reviewDay);
 
   const now = Date.now();
@@ -73,7 +72,7 @@ export function Onboarding() {
     dispatch({
       type: 'onboard',
       tasks: drafts.map((d) => ({ title: d.title, createdAt: d.createdAt, bucket: map[d.choice ?? 'inbox'] })),
-      settings: { ...DEFAULT_SETTINGS, limit, reviewDay },
+      reviewDay,
       minutes: Math.max(1, Math.round((Date.now() - startedAt.current) / 60000)),
     });
   };
@@ -128,7 +127,6 @@ export function Onboarding() {
   if (step === 3) {
     const d = drafts[Math.min(i, drafts.length - 1)];
     const old = d && ageDays(d.createdAt) > LET_GO_AFTER_DAYS;
-    const weekFull = picksThisWeek >= limit;
     const btn = 'flex h-14 items-center justify-center gap-1.5 rounded-full font-display text-base font-semibold shadow-[var(--shadow-soft)] transition active:scale-[.97] disabled:opacity-40';
     return (
       <Shell>
@@ -144,7 +142,7 @@ export function Onboarding() {
         <div className="mt-3">
           {d && (
             <SwipeDeck cardKey={String(i)} exitDir={exitDir} height={old ? 250 : 210} left="Later" right="This Week"
-              onSwipe={(dir) => (dir === 'right' ? (weekFull ? undefined : choose('this_week', 'right')) : choose('later', 'left'))}>
+              onSwipe={(dir) => (dir === 'right' ? choose('this_week', 'right') : choose('later', 'left'))}>
               <AgeDot createdAt={d.createdAt} long />
               <div className="mt-3 font-display text-[25px] leading-tight font-semibold">{d.title}</div>
               {old && <p className="mt-3 rounded-2xl bg-lav-t px-3 py-2.5 text-sm leading-snug font-bold text-[#4E4380]">It's been waiting a while, so it's set to <b>Let go</b>. Pick another to keep it.</p>}
@@ -152,7 +150,7 @@ export function Onboarding() {
           )}
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2.5">
-          <button className={`${btn} bg-coral`} disabled={weekFull} onClick={() => choose('this_week', 'right')}>{weekFull ? 'Week full' : 'This Week'}</button>
+          <button className={`${btn} bg-coral`} onClick={() => choose('this_week', 'right')}>This Week</button>
           <button className={`${btn} bg-peach`} onClick={() => choose('next_week')}>Next Week</button>
           <button className={`${btn} bg-mint`} onClick={() => choose('later', 'left')}>Later</button>
           <button className={`${btn} bg-lav ${old ? 'outline-4 outline-offset-2 outline-ink' : ''}`} onClick={() => choose('letgo')}>
@@ -171,18 +169,18 @@ export function Onboarding() {
       <Shell>
         <div className="mb-4 flex items-center gap-3"><BackButton onClick={backToSort} /><Steps n={3} of={4} /></div>
         <h1 className="font-display text-[30px] leading-tight font-bold">Set your week</h1>
-        <p className="mt-2 text-muted">You can change these later.</p>
-        <Card className="mt-5">
-          <div className="font-display text-[17px] font-semibold">Week limit</div>
-          <div className="mt-3 text-center font-display text-[52px] leading-none font-bold text-coral-d">{limit} <span className="text-lg font-semibold text-muted">tasks</span></div>
-          <div className="mt-3"><Range label="Week limit" value={limit} min={Math.max(10, picksThisWeek)} max={60} onChange={setLimit} /></div>
-          <div className="flex justify-between text-[13px] font-extrabold text-muted"><span>{Math.max(10, picksThisWeek)}</span><span>60</span></div>
-          <p className="mt-2 text-sm font-semibold text-muted">Most people start with 20.</p>
+        <p className="mt-2 text-muted">One choice, and you can change it later.</p>
+        <Card className="mt-5 flex items-center gap-3 bg-lav-t">
+          <Sec pose="when" className="w-16 shrink-0" />
+          <div>
+            <div className="font-display text-[17px] font-semibold">Your first week is a learning week</div>
+            <p className="mt-1 text-sm font-semibold text-muted">No limit yet. Sec watches how much you finish, then suggests a limit at your first review.</p>
+          </div>
         </Card>
         <Card className="mt-3.5">
           <div className="font-display text-[17px] font-semibold">Review day</div>
           <DayChips label="Review day" value={reviewDay} onChange={setReviewDay} />
-          <p className="mt-2.5 text-sm font-semibold text-muted">10 minutes to plan the next week. Weeks run Mon – Sun.</p>
+          <p className="mt-2.5 text-sm font-semibold text-muted">A few minutes to close the week and plan the next. Weeks run Mon – Sun.</p>
         </Card>
         <div className="flex-1" />
         <Button className="mt-6" onClick={() => setStep(5)}>Looks good</Button>
@@ -205,7 +203,7 @@ export function Onboarding() {
       </p>
       <div className="flex items-center justify-center gap-3.5 rounded-[26px] bg-white px-4 py-4">
         <b className="font-display text-[40px] leading-none text-coral-d">{tw}</b>
-        <div><div className="font-display text-[17px] font-semibold">this week</div><div className="text-[13px] font-bold text-muted">{limit - tw > 0 ? `Room for ${limit - tw} more` : 'Full week'} · {fmtRange(planStart, addDays(planStart, 6))}</div></div>
+        <div><div className="font-display text-[17px] font-semibold">this week</div><div className="text-[13px] font-bold text-muted">{fmtRange(planStart, addDays(planStart, 6))} · learning week</div></div>
       </div>
       {lg > 0 && (
         <div className="mt-2.5 flex items-center justify-center gap-3.5 rounded-[26px] bg-lav-t px-4 py-4">
@@ -239,7 +237,7 @@ function Option({ on, onClick, icon, tint, title, sub }: { on: boolean; onClick:
 
 const SLIDES = [
   { title: <>Ask <span className="text-coral-d">when</span>, not what</>, sub: "Every task gets one slot in time. That's the only folder." },
-  { title: <>Your week has a limit</>, sub: "When it's full, something moves out. No more fantasy weeks." },
+  { title: <>Your week has a limit</>, sub: "Set from what you actually finish. When it's full, something moves out." },
   { title: <>80% is a win</>, sub: "Finish most of your week and it counts. Nobody's perfect." },
 ];
 

@@ -1,8 +1,8 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { BUCKET_NAME, BUCKET_STYLE, moveTargets } from '../lib/buckets';
+import { BUCKET_NAME, BUCKET_STYLE, laterBucket, moveTargets } from '../lib/buckets';
 import { DAYS_LONG } from '../lib/dates';
-import { byOldest, openThisWeek, uid, useStore, weekCount, type Bucket, type MoveTarget } from '../lib/store';
+import { byOldest, MAX_LIMIT, MIN_LIMIT, openThisWeek, uid, useStore, weekCount, type Bucket } from '../lib/store';
 import { useUI } from '../lib/ui';
 import { Sec } from './Sec';
 import { AgeDot, Button, DayChips, LinkButton, Range, Sheet } from './ui';
@@ -20,7 +20,10 @@ export function AddSheet({ open, onClose }: { open: boolean; onClose: () => void
   const [bucket, setBucket] = useState<Bucket>('inbox');
   const [added, setAdded] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  const targets = moveTargets(state.planWeekStart);
+  const later = laterBucket(state.planWeekStart);
+  const choices: Array<{ b: Bucket; label: string }> = [
+    { b: 'inbox', label: 'Decide later' }, { b: 'this_week', label: 'This Week' }, { b: 'next_week', label: 'Next Week' }, { b: later, label: 'Later' },
+  ];
 
   useEffect(() => { if (open) { setTitle(''); setBucket('inbox'); setAdded(null); } }, [open]);
 
@@ -49,12 +52,12 @@ export function AddSheet({ open, onClose }: { open: boolean; onClose: () => void
       </form>
       <div className="mt-4 font-display text-sm font-semibold text-muted">When?</div>
       <div className="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Bucket">
-        {[{ b: 'inbox' as Bucket, label: 'Decide later' }, ...targets].map(({ b, label }) => (
+        {choices.map(({ b, label }) => (
           <button key={b} role="radio" aria-checked={bucket === b} onClick={() => setBucket(b)}
             className={`${chip} ${bucket === b ? `${BUCKET_STYLE[b].bg} ring-3 ring-ink` : 'bg-white'}`}>{label}</button>
         ))}
       </div>
-      <p className="mt-3 min-h-5 text-sm font-bold text-muted" aria-live="polite">{added ?? 'Tip: type !tw for This Week, !nw for Next Week.'}</p>
+      <p className="mt-3 min-h-5 text-sm font-bold text-muted" aria-live="polite">{added}</p>
     </Sheet>
   );
 }
@@ -109,10 +112,8 @@ export function SwapSheet({ incomingId, onClose }: { incomingId: string | null; 
   const { state, dispatch } = useStore();
   const incoming = state.tasks.find((t) => t.id === incomingId);
   const candidates = openThisWeek(state).sort(byOldest).slice(0, 5);
-  const targets = moveTargets(state.planWeekStart).filter((t) => t.b !== 'this_week');
   const [outId, setOutId] = useState<string | null>(null);
-  const [to, setTo] = useState<MoveTarget>('next_week');
-  useEffect(() => { if (incomingId) { setOutId(null); setTo('next_week'); } }, [incomingId]);
+  useEffect(() => { if (incomingId) setOutId(null); }, [incomingId]);
   const selected = outId ?? candidates[0]?.id;
   const done = weekCount(state) - openThisWeek(state).length;
 
@@ -132,7 +133,7 @@ export function SwapSheet({ incomingId, onClose }: { incomingId: string | null; 
             <p className="mt-4 text-sm font-semibold text-muted">All {done} tasks this week are done. Nice! Raise the limit to fit this one, or plan it for later.</p>
           ) : (
             <>
-              <div className="mt-3 font-display text-sm font-semibold text-muted">Move one out · oldest first</div>
+              <div className="mt-3 font-display text-sm font-semibold text-muted">Pick one to move to Next Week · oldest first</div>
               <div className="mt-2 flex flex-col gap-1.5" role="radiogroup" aria-label="Task to move out">
                 {candidates.map((t, k) => (
                   <button key={t.id} role="radio" aria-checked={selected === t.id} onClick={() => setOutId(t.id)}
@@ -143,14 +144,7 @@ export function SwapSheet({ incomingId, onClose }: { incomingId: string | null; 
                   </button>
                 ))}
               </div>
-              <div className="mt-3 font-display text-sm font-semibold text-muted">Move it to</div>
-              <div className="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Move it to">
-                {targets.map((t) => (
-                  <button key={t.b} role="radio" aria-checked={to === t.b} onClick={() => setTo(t.b)}
-                    className={`${chip} ${to === t.b ? `${BUCKET_STYLE[t.b].bg} ring-3 ring-ink` : 'bg-white'}`}>{t.label}</button>
-                ))}
-              </div>
-              <Button className="mt-4" onClick={() => { if (selected) dispatch({ type: 'swap', outId: selected, to, inId: incoming.id }); onClose(); }}>Swap it in</Button>
+              <Button className="mt-4" onClick={() => { if (selected) dispatch({ type: 'swap', outId: selected, to: 'next_week', inId: incoming.id }); onClose(); }}>Move to Next Week &amp; add</Button>
             </>
           )}
           <div className="text-center">
@@ -172,7 +166,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
   const [copied, setCopied] = useState(false);
   useEffect(() => { if (open) { setConfirmReset(false); setCopied(false); } }, [open]);
   const s = state.settings;
-  const min = Math.max(10, weekCount(state));
+  const min = Math.max(MIN_LIMIT, Math.min(weekCount(state), MAX_LIMIT));
   const set = (patch: Partial<typeof s>) => dispatch({ type: 'settings', patch });
 
   const copy = async () => {
@@ -186,9 +180,18 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
     <Sheet open={open} onClose={onClose} label="Settings">
       <h2 className="mt-1 font-display text-2xl font-semibold">Settings</h2>
       <div className="mt-4 rounded-[24px] bg-white p-4">
-        <div className="flex items-baseline justify-between font-display font-semibold">Week limit <span className="text-2xl text-coral-d">{s.limit}</span></div>
-        <Range label="Week limit" value={s.limit} min={min} max={60} onChange={(v) => set({ limit: v })} />
-        <div className="flex justify-between text-xs font-extrabold text-muted"><span>{min}</span><span>60</span></div>
+        {state.calibrating ? (
+          <>
+            <div className="font-display font-semibold">Week limit</div>
+            <p className="mt-1 text-sm font-semibold text-muted">Learning week. Your first review suggests a limit from what you finish.</p>
+          </>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between font-display font-semibold">Week limit <span className="text-2xl text-coral-d">{s.limit}</span></div>
+            <Range label="Week limit" value={s.limit} min={min} max={MAX_LIMIT} onChange={(v) => set({ limit: v })} />
+            <div className="flex justify-between text-xs font-extrabold text-muted"><span>{min}</span><span>{MAX_LIMIT}</span></div>
+          </>
+        )}
       </div>
       <div className="mt-3 rounded-[24px] bg-white p-4">
         <div className="font-display font-semibold">Review day · {DAYS_LONG[s.reviewDay]}</div>

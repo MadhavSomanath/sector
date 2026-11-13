@@ -27,7 +27,7 @@ export function Buckets() {
       <button onClick={() => ui.goTo('week')} className="mt-4 flex w-full items-center gap-3 rounded-[22px] bg-coral-t px-4 py-3 text-left">
         <span className="size-3.5 rounded-[5px] bg-coral" />
         <span className="flex-1 font-display text-[17px] font-semibold">This Week <span className="text-sm text-muted">{r.thisWeek}</span></span>
-        <span className="text-sm font-extrabold text-coral-d">{weekCount(state)} / {state.settings.limit}</span>
+        <span className="text-sm font-extrabold text-coral-d">{state.calibrating ? `${weekCount(state)} planned` : `${weekCount(state)} / ${state.settings.limit}`}</span>
         <ChevronRight size={18} />
       </button>
 

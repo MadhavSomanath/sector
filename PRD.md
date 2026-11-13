@@ -47,7 +47,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 **Principles**
 1. Time is the only folder.
 2. Two questions per task: *What is it? When?*
-3. The limit is a feature. Adding past it means choosing what moves out.
+3. The limit is a feature, set from what you actually finish. Adding past it means choosing what moves out.
 4. 80% is a win week. Never shame a miss.
 5. Letting go is safe. Parked and deleted tasks can be restored.
 6. The weekly review takes 10 minutes.
@@ -57,13 +57,14 @@ Solo users with full calendars who already use a task app and feel behind: manag
 ```
  Nov 9 ─── 15 │ 16 ─── 22 │ 23 ──── 30 │ December │ no date
   THIS WEEK   │ NEXT WEEK │ LATER THIS │   NEXT   │ ON HOLD
-  (limit 20)  │           │   MONTH    │  MONTH   │
+  (limit)     │           │   MONTH    │  MONTH   │
 ```
 
 - Weeks run Monday to Sunday by default; the review is on Saturday. Both are user settings.
 - The nearest bucket wins: if Next Week spans two months, tasks stay in Next Week.
 - Empty buckets are hidden.
 - Tasks never move on their own. Moves happen in the review, or by hand.
+- **Learning week:** the first week has no limit. At the first review the app suggests one from what got done (done ÷ 0.8, rounded down, minimum 3), so finishing the same amount again is a win week. The user can adjust it before locking in.
 - **Age dot** on every task: 🟢 under 7 days · 🟡 7–30 days · 🔴 over 30 days.
 
 ## 6. Requirements
@@ -80,20 +81,21 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | | Inbox badge and a nudge for items older than 48 hours | P0 |
 | Buckets & limit | 5 bucket lists, drag and bulk move | P0 |
 | | This Week shows "14 / 20" | P0 |
-| | Adding past the limit opens a **swap sheet**, oldest task suggested first | P0 |
-| | Limit is adjustable (10–60, default 20); suggested limit from history | P0 / P1 |
+| | Adding past the limit opens a **swap sheet**: pick one task (oldest suggested first) to move to Next Week | P0 |
+| | Learning week first, then a limit suggested at the first review (3–60, adjustable in Settings) | P0 |
+| | Re-suggest the limit every few reviews from recent weeks | P1 |
 | | Optional labels and due dates | P0 / P1 |
 | Letting go | Age dot on every task | P0 |
 | | Clean-up view for tasks over 30 days: delete all, park all, or one by one | P0 |
 | | Trash keeps tasks for 30 days; parked tasks go to the Parking Lot (reviewed monthly) | P0 / P1 |
-| Weekly review | 5 steps: celebrate score → leftovers (keep / push / delete, none skipped) → pull from Next Week → capacity check → lock in | P0 |
+| Weekly review | 3 steps: score (or limit calibration after the learning week) → leftovers (keep / push / let go / delete, none skipped) → plan next week up to the limit and lock in | P0 |
 | | Reminder on review day | P0 |
 | | Monthly rollover: Next Month becomes Later this month | P1 |
-| Capacity | Google Calendar, read-only free/busy: show free hours this week | P0 |
+| Capacity | Google Calendar, read-only free/busy: show free hours, and add a fit check to the review once connected (no guessed hours per task) | P1 |
 | | Effort sizes (S / M / L) and a warning above 80% of free hours | P1 |
-| Progress | Week score, with 80% or more = win week | P0 |
+| Progress | Week score, with 80% or more = win week (rounded down, so 4 of 5 or 2 of 3 counts) | P0 |
 | | 12-week trend and review streak | P1 |
-| Onboarding | Method in 3 swipes → import / paste / start fresh → first sort → set limit and review day | P0 |
+| Onboarding | Method in 3 swipes → import / paste / start fresh → first sort → pick review day | P0 |
 | | Import from CSV (P0), Todoist / TickTick / To Do APIs (P1) | P0 / P1 |
 | | Tasks older than 60 days start set to "Let go" in the first sort | P0 |
 | | Setup Thursday–Sunday: "This Week" means the upcoming week | P0 |
@@ -103,7 +105,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 
 1. **First run:** method → bring tasks → first sort → set week → This Week
 2. **Daily:** open This Week → tick tasks off → quick add → sort the inbox
-3. **Weekly:** reminder → 5-step review → week locked in
+3. **Weekly:** reminder → 3-step review → week locked in
 4. **Over the limit:** add to This Week → swap sheet → move one out → done
 
 **Screens:** This Week (home) · Buckets · Inbox sort · Weekly review · Clean-up · Score · Settings
@@ -129,7 +131,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 |---|---|
 | 0. Prototype | Clickable phone prototype. Test the weekly limit and the weekly review with 5 people |
 | 1. MVP | P0 requirements |
-| 2. Beta | P1: Todoist import, effort sizes, suggested limit, trends, monthly rollover |
+| 2. Beta | P1: Todoist import, calendar fit check, effort sizes, limit re-suggestions, trends, monthly rollover |
 | 3. Launch | Landing page, PWA polish, pricing test |
 | 4. Later | P2: recurring tasks, email-to-inbox, Outlook calendar, native apps |
 
@@ -137,7 +139,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 
 | Risk | Mitigation |
 |---|---|
-| The limit feels annoying | Default 20, adjustable, one-tap swap. Track how often it's raised |
+| The limit feels annoying | Set from the user's own learning week, adjustable, one-tap swap. Track how often it's raised |
 | People skip the review | Reminder, streak, 10-minute promise, shorter review when behind |
 | "Yet another to-do app" | Easy import and a first sort that shows value in the first session |
 | A general AI assistant can already "make my week realistic" | Win on a simple method and low effort. Revisit AI after launch |
@@ -150,7 +152,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | Platform | Phone-first PWA, desktop layout too |
 | Audience | Solo users |
 | Business model | Free + Pro ($4–6/mo for calendar and insights) |
-| Weekly limit | Default 20, range 10–60 |
+| Weekly limit | Learning week first, then suggested from what got done (3–60) |
 | Week | Monday–Sunday, review Saturday (both adjustable) |
 | Buckets | Calendar months, never overlapping; nearest wins; empty ones hidden |
 | Sorting | Tap buttons plus swipe |

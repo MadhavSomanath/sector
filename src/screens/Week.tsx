@@ -3,8 +3,8 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { SecFace, Sec } from '../components/Sec';
 import { TaskRow } from '../components/TaskRow';
-import { addDays, DAYS_SHORT, fmtDay, fmtRange, startOfDay, weekStartOf } from '../lib/dates';
-import { byNewest, doneThisWeek, inBucket, openThisWeek, useStore, weekCount } from '../lib/store';
+import { addDays, DAYS_LONG, DAYS_SHORT, fmtRange, startOfDay, weekStartOf } from '../lib/dates';
+import { byNewest, doneThisWeek, inBucket, openThisWeek, useStore, weekCount, winAt as winAtFor } from '../lib/store';
 import { useUI } from '../lib/ui';
 
 export function Week() {
@@ -19,7 +19,7 @@ export function Week() {
   const done = doneThisWeek(state).sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
   const count = weekCount(state);
   const limit = state.settings.limit;
-  const winAt = Math.ceil(count * 0.8);
+  const winAt = winAtFor(count);
   const inbox = inBucket(state, 'inbox').length;
   const isReviewDay = new Date(now).getDay() === state.settings.reviewDay;
 
@@ -27,8 +27,8 @@ export function Week() {
     <div className="px-[22px] pt-6">
       <header className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-extrabold text-muted">{fmtDay(now)}{upcoming && ` · planning ${fmtRange(ws, addDays(ws, 6))}`}</div>
-          <h1 className="font-display text-[30px] leading-tight font-bold">{upcoming ? 'Your upcoming week' : 'This Week'}</h1>
+          <div className="text-sm font-extrabold text-muted">{fmtRange(ws, addDays(ws, 6))}{upcoming && ` · starts ${DAYS_LONG[new Date(ws).getDay()]}`}</div>
+          <h1 className="font-display text-[30px] leading-tight font-bold">This Week</h1>
         </div>
         <button onClick={ui.openSettings} aria-label="Settings" className="grid size-11 place-items-center rounded-full bg-white shadow-[var(--shadow-soft)]">
           <SecFace className="w-[34px]" />
@@ -50,10 +50,21 @@ export function Week() {
         })}
       </div>
 
+      {state.calibrating ? (
+        <div className="mt-4 rounded-[26px] bg-white px-4 py-3.5 shadow-[var(--shadow-soft)]">
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-[26px] font-bold">{count} <small className="text-base text-muted">planned</small></span>
+            <span className="text-[13px] font-extrabold text-muted">{done.length} done</span>
+          </div>
+          <p className="mt-1.5 text-[13px] font-bold text-muted">
+            {count > 20 ? 'Big week! Learning week, so no limit yet. We’ll see how it goes.' : 'Learning week: no limit yet. Your first review suggests one.'}
+          </p>
+        </div>
+      ) : (
       <div className="mt-4 rounded-[26px] bg-white px-4 py-3.5 shadow-[var(--shadow-soft)]">
         <div className="flex items-baseline justify-between">
           <span className="font-display text-[26px] font-bold">{count} <small className="text-base text-muted">/ {limit}</small></span>
-          <span className="text-[13px] font-extrabold text-muted">{count ? `${done.length} done · ${winAt} makes a win` : 'Room for the week'}</span>
+          <span className="text-[13px] font-extrabold text-muted">{count ? `${done.length} done · win at ${winAt}` : 'Room for the week'}</span>
         </div>
         <div className="mt-2.5 flex gap-[3px]" aria-hidden>
           {limit <= 30
@@ -61,6 +72,7 @@ export function Week() {
             : <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-coral-t"><span className="block h-full rounded-full bg-coral" style={{ width: `${(count / limit) * 100}%` }} /></span>}
         </div>
       </div>
+      )}
 
       {isReviewDay && (
         <Nudge tint="bg-lav-t" onClick={ui.startReview} title="It's review day" sub="10 minutes to plan your next week" />

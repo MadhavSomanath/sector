@@ -7,8 +7,8 @@ Most task apps are good at collecting tasks and bad at getting them done. Sector
 ## How it works
 
 - **Five buckets:** This Week · Next Week · Later this month · Next Month · On Hold
-- **A weekly limit:** This Week holds 20 tasks by default (adjustable 10–60). Adding past the limit means choosing what moves out.
-- **A Saturday review:** about 10 minutes to close the week and plan the next one. Nothing rolls over silently.
+- **A weekly limit, set from real life:** the first week is a learning week with no limit. The first review suggests a limit from what actually got done. After that, adding past the limit means choosing what moves out.
+- **A Saturday review:** three quick steps to close the week and plan the next one. Nothing rolls over silently.
 - **Age dots:** 🟢 under 7 days · 🟡 7–30 days · 🔴 over 30 days, so old tasks are easy to let go.
 - **80% is a win:** finishing most of the week counts as a good week.
 
@@ -16,13 +16,13 @@ Most task apps are good at collecting tasks and bad at getting them done. Sector
 
 Prototype. A clickable phone app, tested first by the maker and a small group of friends, before any public release. Data stays in the browser on each device; there are no accounts yet.
 
-**In the prototype:** onboarding with a first sort, This Week with the limit and age dots, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 5-step weekly review. Settings has "Copy usage notes" for sharing test feedback.
+**In the prototype:** onboarding with a first sort, This Week with the limit and age dots, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 3-step weekly review with limit calibration after the learning week. Settings has "Copy usage notes" for sharing test feedback.
 
 | Stage | Focus |
 |---|---|
 | Prototype | Clickable phone app, test the weekly limit and the weekly review |
 | MVP | Core features from the PRD |
-| Beta | Imports, trends, suggested limit |
+| Beta | Imports, calendar fit check, trends |
 | Launch | PWA polish, landing page |
 
 ## Docs

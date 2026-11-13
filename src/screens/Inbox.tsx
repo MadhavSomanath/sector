@@ -53,7 +53,7 @@ export function Inbox() {
           <button key={t.b} onClick={() => send(t.b, t.b === 'this_week' ? 'right' : t.b === later ? 'left' : null)}
             className={`flex h-14 items-center justify-center gap-1.5 rounded-full font-display text-base font-semibold shadow-[var(--shadow-soft)] transition active:scale-[.97] ${BUCKET_STYLE[t.b].bg}`}>
             {t.label}
-            {t.b === 'this_week' && <small className="font-sans text-xs font-extrabold opacity-75">{weekCount(state)}/{state.settings.limit}</small>}
+            {t.b === 'this_week' && <small className="font-sans text-xs font-extrabold opacity-75">{weekCount(state)}{state.calibrating ? '' : `/${state.settings.limit}`}</small>}
           </button>
         ))}
         <button onClick={() => send('trash')} className={`flex h-14 items-center justify-center rounded-full bg-white font-display text-base font-semibold shadow-[var(--shadow-soft)] ${targets.length % 2 ? '' : 'col-span-2'}`}>Delete</button>
