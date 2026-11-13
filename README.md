@@ -14,7 +14,7 @@ Most task apps are good at collecting tasks and bad at getting them done. Sector
 
 ## Status
 
-Prototype. A clickable phone app, tested first by the maker and a small group of friends, before any public release. Data stays in the browser on each device; there are no accounts yet.
+Prototype. A clickable phone app, tested first by the maker and a small group of friends, before any public release. It installs to the home screen and works offline. Data stays in the browser on each device; there are no accounts yet.
 
 **In the prototype:** onboarding with a first sort, This Week with the limit and age dots, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 3-step weekly review with limit calibration after the learning week. Settings has "Copy usage notes" for sharing test feedback.
 
@@ -24,6 +24,15 @@ Prototype. A clickable phone app, tested first by the maker and a small group of
 | MVP | Core features from the PRD |
 | Beta | Imports, calendar fit check, trends |
 | Launch | PWA polish, landing page |
+
+## Try it
+
+Live at [sector-umber.vercel.app](https://sector-umber.vercel.app/). To install it like an app:
+
+- **iPhone:** open it in Safari, tap Share, then **Add to Home Screen**
+- **Android:** open it in Chrome, then menu → **Install app**
+
+It opens full screen and works offline. Tasks are saved on that device only, so clearing browser data or switching phones starts fresh.
 
 ## Docs
 
@@ -36,7 +45,7 @@ npm install
 npm run dev
 ```
 
-Open the address it prints. To try it on a phone on the same Wi-Fi, use the "Network" address.
+Open the address it prints. To try it on a phone on the same Wi-Fi, use the "Network" address. Offline support only runs in a production build (`npm run build && npm run preview`).
 
 ## Stack
 
