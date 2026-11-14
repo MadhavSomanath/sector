@@ -5,7 +5,9 @@ import { Sec } from '../components/Sec';
 import { SwipeDeck, type Dir } from '../components/SwipeDeck';
 import { AgeDot, BackButton, Button, Card, Confetti, DayChips, LinkButton, Steps } from '../components/ui';
 import { laterBucket } from '../lib/buckets';
-import { addDays, ageDays, bucketRanges, DAY, fmtRange, planningWeekStart, weekStartOf } from '../lib/dates';
+import { addDays, ageDays, bucketRanges, DAY, DAYS_LONG, fmtDay, fmtRange, planningWeekStart, reviewDateFor, weekStartOf } from '../lib/dates';
+import { ReviewReminder } from '../components/ReviewReminder';
+import { HowItWorks } from './HowItWorks';
 import { DEFAULT_SETTINGS, useStore, type Bucket } from '../lib/store';
 import { SAMPLE_TASKS } from '../lib/sample';
 
@@ -14,6 +16,8 @@ interface Draft { title: string; createdAt: number; choice: Choice | null }
 type Source = 'sample' | 'paste' | 'fresh';
 
 const LET_GO_AFTER_DAYS = 60;
+/** Rough age for a pasted list, so age dots and the Let go default work on real lists. */
+const LIST_AGES: Array<[string, number]> = [['This month', 3], ['A few months', 90], ['Over a year', 400]];
 
 export function Onboarding() {
   const { dispatch } = useStore();
@@ -21,6 +25,7 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [source, setSource] = useState<Source>('sample');
   const [paste, setPaste] = useState('');
+  const [pasteAge, setPasteAge] = useState(LIST_AGES[0][1]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [i, setI] = useState(0);
   const [exitDir, setExitDir] = useState<Dir | null>(null);
@@ -30,6 +35,8 @@ export function Onboarding() {
   const planStart = planningWeekStart(now, DEFAULT_SETTINGS.weekStartDay);
   const lateWeek = planStart !== weekStartOf(now, DEFAULT_SETTINGS.weekStartDay);
   const ranges = bucketRanges(planStart);
+  const later = laterBucket(planStart);
+  const firstReview = reviewDateFor(planStart, reviewDay, DEFAULT_SETTINGS.weekStartDay);
   const picksThisWeek = drafts.filter((d) => d.choice === 'this_week').length;
   const count = (c: Choice) => drafts.filter((d) => d.choice === c).length;
 
@@ -37,7 +44,7 @@ export function Onboarding() {
     if (source === 'fresh') { setDrafts([]); setStep(4); return; }
     const list: Draft[] = source === 'sample'
       ? SAMPLE_TASKS.map(([title, age]) => ({ title, createdAt: now - age * DAY, choice: null }))
-      : paste.split('\n').map((l) => l.replace(/^\s*([-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean).map((title) => ({ title, createdAt: now, choice: null }));
+      : paste.split('\n').map((l) => l.replace(/^\s*([-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean).map((title) => ({ title, createdAt: now - pasteAge * DAY, choice: null }));
     setDrafts(list); setI(0); setStep(3);
   };
 
@@ -68,7 +75,7 @@ export function Onboarding() {
   };
 
   const finish = () => {
-    const map: Record<Choice, Bucket> = { this_week: 'this_week', next_week: 'next_week', later: laterBucket(planStart), letgo: 'parked', inbox: 'inbox' };
+    const map: Record<Choice, Bucket> = { this_week: 'this_week', next_week: 'next_week', later, letgo: 'parked', inbox: 'inbox' };
     dispatch({
       type: 'onboard',
       tasks: drafts.map((d) => ({ title: d.title, createdAt: d.createdAt, bucket: map[d.choice ?? 'inbox'] })),
@@ -96,7 +103,7 @@ export function Onboarding() {
       </Shell>
     );
 
-  if (step === 1) return <Idea onBack={() => setStep(0)} onDone={() => setStep(2)} />;
+  if (step === 1) return <HowItWorks reviewDay={reviewDay} onBack={() => setStep(0)} onDone={() => setStep(2)} doneLabel="Let’s set up" />;
 
   if (step === 2)
     return (
@@ -114,6 +121,18 @@ export function Onboarding() {
               placeholder={'Book dentist\nRenew passport\nCall the bank'}
               className="w-full resize-none rounded-[22px] border-0 bg-white p-4 text-base shadow-[var(--shadow-soft)] outline-none focus:ring-3 focus:ring-coral" />
           )}
+          {source === 'paste' && (
+            <div>
+              <div className="px-1 font-display text-[15px] font-semibold">How old is this list?</div>
+              <div className="mt-2 flex gap-2" role="radiogroup" aria-label="How old is this list">
+                {LIST_AGES.map(([label, days]) => (
+                  <button key={label} role="radio" aria-checked={pasteAge === days} onClick={() => setPasteAge(days)}
+                    className={`h-10 flex-1 rounded-full font-display text-[14px] font-semibold transition ${pasteAge === days ? 'bg-coral-d text-white' : 'bg-white shadow-[var(--shadow-soft)]'}`}>{label}</button>
+                ))}
+              </div>
+              <p className="mt-2 px-1 text-[13px] font-bold text-muted">Older tasks start set to Let go, so you can clear them out fast.</p>
+            </div>
+          )}
           <Option on={source === 'fresh'} onClick={() => setSource('fresh')} icon={<Plus size={24} className="text-[#2E8A5C]" />} tint="bg-mint-t"
             title="Start fresh" sub="Empty week, clean slate" />
         </div>
@@ -127,7 +146,7 @@ export function Onboarding() {
   if (step === 3) {
     const d = drafts[Math.min(i, drafts.length - 1)];
     const old = d && ageDays(d.createdAt) > LET_GO_AFTER_DAYS;
-    const btn = 'flex h-14 items-center justify-center gap-1.5 rounded-full font-display text-base font-semibold shadow-[var(--shadow-soft)] transition active:scale-[.97] disabled:opacity-40';
+    const btn = 'flex h-[60px] items-center justify-center gap-1.5 rounded-full font-display text-base font-semibold shadow-[var(--shadow-soft)] transition active:scale-[.97] disabled:opacity-40';
     return (
       <Shell>
         <div className="mb-3 flex items-center gap-3"><BackButton onClick={undo} label={i === 0 ? 'Back' : 'Undo last'} /><Steps n={2} of={4} /></div>
@@ -150,15 +169,15 @@ export function Onboarding() {
           )}
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2.5">
-          <button className={`${btn} bg-coral`} onClick={() => choose('this_week', 'right')}>This Week</button>
-          <button className={`${btn} bg-peach`} onClick={() => choose('next_week')}>Next Week</button>
-          <button className={`${btn} bg-mint`} onClick={() => choose('later', 'left')}>Later</button>
+          <button className={`${btn} bg-coral`} onClick={() => choose('this_week', 'right')}><Label sub={ranges.thisWeek}>This Week</Label></button>
+          <button className={`${btn} bg-peach`} onClick={() => choose('next_week')}><Label sub={ranges.nextWeek}>Next Week</Label></button>
+          <button className={`${btn} ${later === 'this_month' ? 'bg-mint' : 'bg-sky'}`} onClick={() => choose('later', 'left')}><Label sub={later === 'this_month' ? ranges.later! : ranges.nextMonth}>Later</Label></button>
           <button className={`${btn} bg-lav ${old ? 'outline-4 outline-offset-2 outline-ink' : ''}`} onClick={() => choose('letgo')}>
-            {old && <Check size={18} strokeWidth={3} />}Let go
+            {old && <Check size={18} strokeWidth={3} />}<Label sub="Parked, not deleted">Let go</Label>
           </button>
         </div>
         <div className="flex-1" />
-        <p className="mt-4 text-center text-sm font-semibold text-muted">Let go = parked, never lost. Bring it back anytime.</p>
+        <p className="mt-4 text-center text-sm font-semibold text-muted">Swipe right for This Week, left for Later.</p>
         <LinkButton className="mx-auto pb-0" onClick={sortLater}>Sort the rest later</LinkButton>
       </Shell>
     );
@@ -174,13 +193,13 @@ export function Onboarding() {
           <Sec pose="when" className="w-16 shrink-0" />
           <div>
             <div className="font-display text-[17px] font-semibold">Your first week is a learning week</div>
-            <p className="mt-1 text-sm font-semibold text-muted">No limit yet. Sec watches how much you finish, then suggests a limit at your first review.</p>
+            <p className="mt-1 text-sm font-semibold text-muted">{fmtRange(planStart, addDays(planStart, 6))}. No limit yet. Sec counts what you finish, then suggests a limit at your first review.</p>
           </div>
         </Card>
         <Card className="mt-3.5">
           <div className="font-display text-[17px] font-semibold">Review day</div>
           <DayChips label="Review day" value={reviewDay} onChange={setReviewDay} />
-          <p className="mt-2.5 text-sm font-semibold text-muted">A few minutes to close the week and plan the next. Weeks run Mon – Sun.</p>
+          <p className="mt-2.5 text-sm font-semibold text-muted">Every {DAYS_LONG[reviewDay]}, a few minutes to close the week and plan the next. Your first review is <b className="text-ink">{fmtDay(firstReview)}</b>.</p>
         </Card>
         <div className="flex-1" />
         <Button className="mt-6" onClick={() => setStep(5)}>Looks good</Button>
@@ -212,6 +231,7 @@ export function Onboarding() {
         </div>
       )}
       {rest.length > 0 && <p className="mt-3 text-center text-sm font-semibold text-muted">Plus {rest.join(' and ')}.</p>}
+      <ReviewReminder firstReview={firstReview} />
       <div className="flex-1" />
       <Button className="mt-6" onClick={finish}>See my week</Button>
     </Shell>
@@ -235,57 +255,6 @@ function Option({ on, onClick, icon, tint, title, sub }: { on: boolean; onClick:
   );
 }
 
-const SLIDES = [
-  { title: <>Ask <span className="text-coral-d">when</span>, not what</>, sub: "Every task gets one slot in time. That's the only folder." },
-  { title: <>Your week has a limit</>, sub: "Set from what you actually finish. When it's full, something moves out." },
-  { title: <>80% is a win</>, sub: "Finish most of your week and it counts. Nobody's perfect." },
-];
-
-function Idea({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [n, setN] = useState(0);
-  const go = (k: number) => ref.current?.scrollTo({ left: k * ref.current.clientWidth, behavior: 'smooth' });
-  return (
-    <Shell>
-      <div className="mb-3.5 flex h-10 items-center"><BackButton onClick={onBack} /><div className="flex-1" /><LinkButton className="p-0" onClick={onDone}>Skip</LinkButton></div>
-      <div ref={ref} className="no-scrollbar -mx-[22px] flex flex-1 snap-x snap-mandatory overflow-x-auto"
-        onScroll={(e) => setN(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
-        {SLIDES.map((s, k) => (
-          <section key={k} className="flex w-full shrink-0 snap-center flex-col px-[22px]" aria-label={`${k + 1} of 3`}>
-            <div className={`relative grid h-[330px] place-items-center overflow-hidden rounded-[32px] shadow-[var(--shadow-lift)] ${k === 2 ? 'bg-mint-t' : 'bg-white'}`}>
-              {k === 0 && (
-                <div className="flex w-[230px] flex-col gap-2">
-                  {[['bg-coral', 'This Week'], ['bg-peach', 'Next Week'], ['bg-mint', 'Later this month'], ['bg-sky', 'Next Month'], ['bg-lav', 'On Hold']].map(([c, l], j) => (
-                    <div key={l} className={`flex h-[42px] items-center rounded-full px-[18px] font-display text-[15px] font-semibold ${c}`} style={{ marginLeft: j * 12 }}>{l}</div>
-                  ))}
-                </div>
-              )}
-              {k === 1 && (
-                <>
-                  <div className="grid grid-cols-5 gap-2.5">{Array.from({ length: 20 }, (_, j) => <span key={j} className={`size-[30px] rounded-[10px] ${j < 14 ? 'bg-coral' : 'bg-coral-t'}`} />)}</div>
-                  <div className="absolute bottom-5 rounded-full bg-bg px-3.5 py-1.5 font-display font-semibold">14 / 20</div>
-                </>
-              )}
-              {k === 2 && (
-                <>
-                  <Sec pose="win" className="w-[200px]" />
-                  <div className="absolute bottom-5 rounded-full bg-white px-3.5 py-1.5 font-display font-semibold">16 of 20 = win week!</div>
-                </>
-              )}
-            </div>
-            <h2 className="mt-6 font-display text-[30px] leading-tight font-bold">{s.title}</h2>
-            <p className="mt-2 text-muted">{s.sub}</p>
-          </section>
-        ))}
-      </div>
-      <div className="my-5 flex justify-center gap-1.5" aria-hidden>
-        {SLIDES.map((_, k) => <span key={k} className={`h-2 rounded-full transition-all ${k === n ? 'w-[22px] bg-coral' : 'w-2 bg-line'}`} />)}
-      </div>
-      <Button onClick={() => {
-        const el = ref.current;
-        const at = el ? Math.round(el.scrollLeft / el.clientWidth) : n;
-        if (at < 2) go(at + 1); else onDone();
-      }}>{n < 2 ? 'Next' : 'Got it'}</Button>
-    </Shell>
-  );
-}
+const Label = ({ children, sub }: { children: ReactNode; sub: string }) => (
+  <span className="flex flex-col items-center leading-tight">{children}<small className="font-sans text-[11px] font-extrabold opacity-70">{sub}</small></span>
+);

@@ -63,3 +63,7 @@ export function bucketRanges(weekStart: number) {
 }
 
 export const ageDays = (createdAt: number, now = Date.now()) => Math.max(0, Math.floor((startOfDay(now) - startOfDay(createdAt)) / DAY));
+
+/** The review that closes a planned week: its review day, or the day after the week if the review day is the first day. */
+export const reviewDateFor = (planWeekStart: number, reviewDay: number, weekStartDay: number) =>
+  addDays(planWeekStart, (reviewDay - weekStartDay + 7) % 7 || 7);

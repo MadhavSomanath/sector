@@ -1,9 +1,10 @@
-import { Plus } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { BUCKET_NAME, BUCKET_STYLE, laterBucket, moveTargets } from '../lib/buckets';
 import { DAYS_LONG } from '../lib/dates';
-import { byOldest, MAX_LIMIT, MIN_LIMIT, openThisWeek, uid, useStore, weekCount, type Bucket } from '../lib/store';
+import { byOldest, MAX_LIMIT, MIN_LIMIT, openThisWeek, reviewDate, uid, useStore, weekCount, type Bucket } from '../lib/store';
 import { useUI } from '../lib/ui';
+import { ReviewReminder } from './ReviewReminder';
 import { Sec } from './Sec';
 import { AgeDot, Button, DayChips, LinkButton, Range, Sheet } from './ui';
 
@@ -81,7 +82,7 @@ export function MoveSheet({ taskId, onClose }: { taskId: string | null; onClose:
       {task && (
         <>
           <div className="mt-1 pr-10 text-sm font-extrabold text-muted">In {BUCKET_NAME[task.bucket]} · <AgeDot createdAt={task.createdAt} long /></div>
-          <h2 className="mt-1 pr-6 font-display text-2xl leading-tight font-semibold">{task.title}</h2>
+          <TitleEdit key={task.id} title={task.title} onSave={(title) => dispatch({ type: 'rename', id: task.id, title })} />
           {gone ? (
             <Button className="mt-5" onClick={() => move('inbox')}>Bring back to Inbox</Button>
           ) : (
@@ -103,6 +104,21 @@ export function MoveSheet({ taskId, onClose }: { taskId: string | null; onClose:
         </>
       )}
     </Sheet>
+  );
+}
+
+/** The task title, editable in place. Saves on Enter or when focus leaves. */
+function TitleEdit({ title, onSave }: { title: string; onSave: (t: string) => void }) {
+  const [v, setV] = useState(title);
+  const save = () => { const t = v.replace(/\s+/g, ' ').trim(); if (t && t !== title) onSave(t); else setV(title); };
+  return (
+    <label className="mt-1 flex items-center gap-2 pr-8">
+      <span className="sr-only">Task name</span>
+      <input value={v} onChange={(e) => setV(e.target.value)} onBlur={save}
+        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+        className="min-w-0 flex-1 rounded-xl bg-transparent px-1 -mx-1 font-display text-2xl leading-tight font-semibold outline-none focus:bg-white focus:ring-3 focus:ring-coral" />
+      <Pencil size={18} className="shrink-0 text-muted" aria-hidden />
+    </label>
   );
 }
 
@@ -162,6 +178,7 @@ export function SwapSheet({ incomingId, onClose }: { incomingId: string | null; 
 
 export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { state, dispatch } = useStore();
+  const { openGuide } = useUI();
   const [confirmReset, setConfirmReset] = useState(false);
   const [copied, setCopied] = useState(false);
   useEffect(() => { if (open) { setConfirmReset(false); setCopied(false); } }, [open]);
@@ -179,6 +196,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
   return (
     <Sheet open={open} onClose={onClose} label="Settings">
       <h2 className="mt-1 font-display text-2xl font-semibold">Settings</h2>
+      <button onClick={() => { onClose(); openGuide(); }} className="mt-4 flex h-12 w-full items-center justify-center rounded-full bg-lav-t font-display font-semibold">How Sector works</button>
       <div className="mt-4 rounded-[24px] bg-white p-4">
         {state.calibrating ? (
           <>
@@ -196,6 +214,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
       <div className="mt-3 rounded-[24px] bg-white p-4">
         <div className="font-display font-semibold">Review day · {DAYS_LONG[s.reviewDay]}</div>
         <DayChips label="Review day" value={s.reviewDay} onChange={(d) => set({ reviewDay: d })} />
+        <ReviewReminder firstReview={reviewDate(state)} className="mt-3 bg-bg" />
       </div>
       <div className="mt-3 rounded-[24px] bg-white p-4">
         <div className="font-display font-semibold">Week starts on</div>

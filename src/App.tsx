@@ -6,6 +6,7 @@ import { UICtx, type Tab, type UI } from './lib/ui';
 import { Buckets } from './screens/Buckets';
 import { Inbox } from './screens/Inbox';
 import { Onboarding } from './screens/Onboarding';
+import { HowItWorks } from './screens/HowItWorks';
 import { Review } from './screens/Review';
 import { Week } from './screens/Week';
 
@@ -17,6 +18,7 @@ export function App() {
   const [swapIn, setSwapIn] = useState<string | null>(null);
   const [settings, setSettings] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [guide, setGuide] = useState(false);
 
   const ui = useMemo<UI>(() => ({
     placeThisWeek: (id) => {
@@ -31,6 +33,7 @@ export function App() {
     openAdd: () => setAdding(true),
     openSettings: () => setSettings(true),
     startReview: () => setReviewing(true),
+    openGuide: () => setGuide(true),
     goTo: setTab,
   }), [state, dispatch]);
 
@@ -46,7 +49,7 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [state.onboarded]);
 
-  useEffect(() => { window.scrollTo(0, 0); }, [tab, reviewing]);
+  useEffect(() => { window.scrollTo(0, 0); }, [tab, reviewing, guide]);
 
   if (!state.onboarded) return <Onboarding />;
 
@@ -60,7 +63,9 @@ export function App() {
 
   return (
     <UICtx.Provider value={ui}>
-      {reviewing ? (
+      {guide ? (
+        <HowItWorks reviewDay={state.settings.reviewDay} onBack={() => setGuide(false)} onDone={() => setGuide(false)} />
+      ) : reviewing ? (
         <Review onClose={() => { setReviewing(false); setTab('week'); }} />
       ) : (
         <div className="mx-auto min-h-dvh max-w-[480px] pb-32">

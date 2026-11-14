@@ -85,6 +85,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | | Learning week first, then a limit suggested at the first review (3–60, adjustable in Settings) | P0 |
 | | Once every planned task is done, tasks pulled in are **bonus**: they don't count against the limit or the score | P0 |
 | | Re-suggest the limit every few reviews from recent weeks | P1 |
+| | Rename a task in place | P0 |
 | | Optional labels and due dates | P0 / P1 |
 | Letting go | Age dot on every task | P0 |
 | | Clean-up view for tasks over 30 days: delete all, park all, or one by one | P0 |
@@ -97,7 +98,7 @@ Solo users with full calendars who already use a task app and feel behind: manag
 | | Effort sizes (S / M / L) and a warning above 80% of free hours | P1 |
 | Progress | Week score, with 80% or more = win week (rounded down, so 4 of 5 or 2 of 3 counts) | P0 |
 | | 12-week trend and review streak | P1 |
-| Onboarding | Method in 3 swipes → import / paste / start fresh → first sort → pick review day | P0 |
+| Onboarding | How a week works in 4 swipes (also in Settings) → import / paste (with a rough list age) / start fresh → first sort → pick review day → add the review to the calendar | P0 |
 | | Import from CSV (P0), Todoist / TickTick / To Do APIs (P1) | P0 / P1 |
 | | Tasks older than 60 days start set to "Let go" in the first sort | P0 |
 | | Setup Thursday–Sunday: "This Week" means the upcoming week | P0 |

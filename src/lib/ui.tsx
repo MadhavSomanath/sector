@@ -7,6 +7,7 @@ export interface UI {
   openAdd: () => void;
   openSettings: () => void;
   startReview: () => void;
+  openGuide: () => void;
   goTo: (tab: Tab) => void;
 }
 export type Tab = 'week' | 'inbox' | 'buckets';

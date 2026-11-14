@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react';
-import { addDays, planningWeekStart } from './dates';
+import { planningWeekStart, reviewDateFor } from './dates';
 
 export type Bucket = 'inbox' | 'this_week' | 'next_week' | 'this_month' | 'next_month' | 'on_hold' | 'parked' | 'trash' | 'done';
 export type MoveTarget = Exclude<Bucket, 'inbox' | 'done'>;
@@ -46,6 +46,7 @@ export type Action =
   | { type: 'onboard'; tasks: Array<{ title: string; bucket: Bucket; createdAt: number }>; reviewDay: number; minutes: number }
   | { type: 'add'; title: string; bucket: Bucket; id: string }
   | { type: 'move'; id: string; bucket: Bucket; bonus?: boolean }
+  | { type: 'rename'; id: string; title: string }
   | { type: 'toggleDone'; id: string }
   | { type: 'swap'; outId: string; to: MoveTarget; inId: string }
   | { type: 'raiseLimit'; inId: string }
@@ -106,6 +107,8 @@ function reducer(s: State, a: Action): State {
       const tasks = s.tasks.map(put(a.id, a.bucket)).map((t) => (t.id === a.id ? { ...t, bonus: a.bonus || undefined } : t));
       return { ...s, tasks, events: log(a.bonus ? 'bonus_added' : 'task_moved', { from, to: a.bucket }) };
     }
+    case 'rename':
+      return { ...s, tasks: s.tasks.map((t) => (t.id === a.id ? { ...t, title: a.title } : t)), events: log('task_renamed') };
     case 'toggleDone': {
       const t = s.tasks.find((x) => x.id === a.id);
       if (!t) return s;
@@ -166,9 +169,7 @@ export const bonusDone = (s: State) => doneThisWeek(s).filter((t) => t.bonus);
 /** Every planned task is done, so anything pulled in now is a bonus. */
 export const weekFinished = (s: State) => openThisWeek(s).every((t) => t.bonus);
 
-/** The review that closes the planned week: its review day, or the day after the week if the review day is the first day. */
-export const reviewDate = (s: State) =>
-  addDays(s.planWeekStart, (s.settings.reviewDay - s.settings.weekStartDay + 7) % 7 || 7);
+export const reviewDate = (s: State) => reviewDateFor(s.planWeekStart, s.settings.reviewDay, s.settings.weekStartDay);
 /** Review is open from review day until it's done, however late. Before that, the Review tab only shows progress. */
 export const reviewDue = (s: State, now = Date.now()) => now >= reviewDate(s) && s.weekLockedAt < reviewDate(s);
 export const isFull = (s: State) => !s.calibrating && weekCount(s) >= s.settings.limit;

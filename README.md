@@ -16,7 +16,7 @@ Most task apps are good at collecting tasks and bad at getting them done. Sector
 
 Prototype. A clickable phone app, tested first by the maker and a small group of friends, before any public release. It installs to the home screen and works offline. Data stays in the browser on each device; there are no accounts yet.
 
-**In the prototype:** onboarding with a first sort, This Week with the limit, age dots, swipe-to-finish and bonus tasks once the week is done, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 3-step weekly review with limit calibration after the learning week. Settings has "Copy usage notes" for sharing test feedback.
+**In the prototype:** onboarding with a 4-step explainer (also in Settings), a first sort and a review-day calendar event, This Week with the limit, age dots, swipe-to-finish and bonus tasks once the week is done, Inbox sorting (tap or swipe), the swap sheet when the week is full, Buckets, and the 3-step weekly review with limit calibration after the learning week. Settings has "Copy usage notes" for sharing test feedback.
 
 | Stage | Focus |
 |---|---|
