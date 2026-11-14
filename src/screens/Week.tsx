@@ -1,10 +1,11 @@
 import { AnimatePresence } from 'motion/react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { useState } from 'react';
 import { SecFace, Sec } from '../components/Sec';
 import { TaskRow } from '../components/TaskRow';
 import { addDays, DAYS_LONG, DAYS_SHORT, fmtRange, startOfDay, weekStartOf } from '../lib/dates';
 import { bonusDone, byNewest, doneThisWeek, inBucket, openThisWeek, plannedDone, reviewDue, useStore, weekCount, winAt as winAtFor } from '../lib/store';
+import { askAfterReview, feedbackLink } from '../lib/feedback';
 import { useUI } from '../lib/ui';
 
 export function Week() {
@@ -82,6 +83,15 @@ export function Week() {
         <Nudge tint="bg-lav-t" onClick={ui.startReview}
           title={weekOver ? 'Last week is still open' : isReviewDay ? 'It’s review day' : 'Your review is ready'}
           sub={weekOver ? 'A few minutes to close it and plan this week' : 'A few minutes to close the week and plan the next'} />
+      )}
+      {!due && askAfterReview(state) && (
+        <div className="mt-3 flex items-center gap-1 rounded-[22px] bg-lav-t pl-4">
+          <a href={feedbackLink(state, 'After review')} target="_blank" rel="noreferrer" onClick={() => dispatch({ type: 'note', event: 'feedback_opened' })} className="flex-1 py-3">
+            <b className="block font-display text-[17px] font-semibold">How’s Sector working for you?</b>
+            <span className="text-sm font-semibold text-muted">A minute of feedback helps a lot</span>
+          </a>
+          <button onClick={() => dispatch({ type: 'note', event: 'feedback_dismissed' })} aria-label="Not now" className="grid size-11 shrink-0 place-items-center"><X size={20} /></button>
+        </div>
       )}
       {inbox > 0 && (
         <Nudge tint="bg-peach-t" onClick={() => ui.goTo('inbox')} title={`${inbox} in your Inbox`} sub="Answer “when?” for each" />

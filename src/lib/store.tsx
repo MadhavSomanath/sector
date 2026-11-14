@@ -51,6 +51,7 @@ export type Action =
   | { type: 'swap'; outId: string; to: MoveTarget; inId: string }
   | { type: 'raiseLimit'; inId: string }
   | { type: 'settings'; patch: Partial<Settings> }
+  | { type: 'note'; event: string }
   | { type: 'lockWeek'; moves: Record<string, Bucket>; minutes: number; score: number; limit?: number };
 
 const KEY = 'sector-proto-v1';
@@ -93,6 +94,8 @@ function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'reset':
       return initial();
+    case 'note':
+      return { ...s, events: log(a.event) };
     case 'onboard':
       return {
         ...s, onboarded: true, calibrating: true, settings: { ...s.settings, reviewDay: a.reviewDay },

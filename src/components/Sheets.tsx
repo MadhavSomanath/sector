@@ -1,7 +1,8 @@
-import { Pencil, Plus } from 'lucide-react';
+import { MessageCircle, Pencil, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { BUCKET_NAME, BUCKET_STYLE, laterBucket, moveTargets } from '../lib/buckets';
 import { DAYS_LONG } from '../lib/dates';
+import { feedbackLink } from '../lib/feedback';
 import { byOldest, MAX_LIMIT, MIN_LIMIT, openThisWeek, reviewDate, uid, useStore, weekCount, type Bucket } from '../lib/store';
 import { useUI } from '../lib/ui';
 import { ReviewReminder } from './ReviewReminder';
@@ -227,8 +228,10 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
       </div>
       <div className="mt-3 rounded-[24px] bg-white p-4">
         <div className="font-display font-semibold">Testing</div>
-        <p className="mt-1 text-sm font-semibold text-muted">Everything stays on this device. Copy your usage notes to share feedback.</p>
-        <div className="mt-3 flex gap-2">
+        <p className="mt-1 text-sm font-semibold text-muted">Your tasks stay on this device. The feedback form only gets your counts, never task names.</p>
+        <a href={feedbackLink(state, 'Settings')} target="_blank" rel="noreferrer" onClick={() => dispatch({ type: 'note', event: 'feedback_opened' })}
+          className="mt-3 flex h-11 items-center justify-center gap-2 rounded-full bg-coral-d font-display font-semibold text-white"><MessageCircle size={18} strokeWidth={2.5} />Send feedback</a>
+        <div className="mt-2 flex gap-2">
           <button onClick={copy} className="h-11 flex-1 rounded-full bg-bg font-display font-semibold">{copied ? 'Copied!' : 'Copy usage notes'}</button>
           {confirmReset ? (
             <button onClick={() => { dispatch({ type: 'reset' }); onClose(); }} className="h-11 flex-1 rounded-full bg-coral-d font-display font-semibold text-white">Erase everything</button>
